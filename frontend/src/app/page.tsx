@@ -16,11 +16,11 @@ const CAT_LABELS: Record<Cat, string> = { all: "All", wedding: "Wedding", portra
 function SkeletonCard() {
   return (
     <div className="card overflow-hidden">
-      <div className="skeleton aspect-[4/3]" style={{ borderRadius: "12px 12px 0 0" }}/>
+      <div className="skeleton aspect-[4/3]" style={{ borderRadius: "3px 3px 0 0" }}/>
       <div className="p-4 space-y-2.5">
         <div className="skeleton h-4 w-2/3 rounded"/>
         <div className="skeleton h-3 w-1/2 rounded"/>
-        <div className="skeleton h-8 w-full rounded-lg mt-1"/>
+        <div className="skeleton h-8 w-full rounded mt-1"/>
       </div>
     </div>
   );
@@ -69,27 +69,30 @@ export default function HomePage() {
       <Navbar />
 
       {/* ── HERO ───────────────────────────────────────────── */}
-      <section className="pt-28 pb-16 px-5 sm:px-8 border-b border-[#e4e4e4]">
-        <div className="max-w-7xl mx-auto">
+      <section className="pt-36 sm:pt-44 pb-20 px-5 sm:px-8 border-b border-[var(--border)]">
+        <div className="max-w-7xl mx-auto animate-fade-in">
           {/* Live pill */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#e4e4e4] bg-[#f7f7f7] text-[#4a4a4a] text-xs font-semibold mb-6 tracking-wide">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500"/>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border-2)] bg-[var(--bg-2)] text-[var(--text-2)] text-xs font-semibold mb-8 tracking-[0.15em] uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)]"/>
             Live on ARC Testnet
           </div>
 
-          <h1 className="text-[clamp(3rem,8vw,6.5rem)] font-black text-[#0a0a0a] leading-none tracking-tight mb-6">
-            Own Your<br/>
-            <span className="text-[#1a1aff]">Moment.</span>
+          <p className="meta-text mb-5">An on-chain photography album · Per-frame proof of purchase</p>
+
+          <h1 className="display text-[clamp(3.2rem,9vw,7.5rem)] text-[var(--text-1)] mb-8">
+            Own the<br/>
+            Moment <span className="gold-text italic">&amp;</span> the Proof
           </h1>
 
           <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-end justify-between">
-            <p className="text-[#4a4a4a] text-lg max-w-lg leading-relaxed">
-              Purchase photo licences on-chain. Pay USDC, receive a proof-of-purchase NFT stored forever on ARC blockchain.
+            <p className="text-[var(--text-2)] text-lg max-w-lg leading-relaxed font-light">
+              Buy a single event frame on-chain. Pay USDC, receive a proof-of-purchase
+              NFT — the photographer is paid directly, the licence is yours forever on ARC.
             </p>
-            <div className="flex flex-wrap gap-3 text-sm text-[#4a4a4a] flex-shrink-0">
+            <div className="flex flex-wrap gap-2.5 text-sm text-[var(--text-2)] flex-shrink-0">
               {["NFT proof of purchase", "Direct to photographer", "Hash on-chain"].map((f) => (
-                <span key={f} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#e4e4e4] bg-[#f7f7f7]">
-                  <span className="text-green-600">✓</span> {f}
+                <span key={f} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--border-2)] bg-[var(--bg-1)]">
+                  <span className="text-[var(--gold)]">✦</span> {f}
                 </span>
               ))}
             </div>
@@ -98,16 +101,16 @@ export default function HomePage() {
       </section>
 
       {/* ── FILTER BAR ─────────────────────────────────────── */}
-      <section className="sticky top-14 z-30 bg-white border-b border-[#e4e4e4]">
+      <section className="sticky top-16 sm:top-[5.75rem] z-30 bg-[#0a1310]/85 backdrop-blur-md border-b border-[var(--border)]">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 py-3 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
           {/* Search */}
           <div className="relative flex-1 max-w-xs">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8a8a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-3)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
             </svg>
             <input
               type="text"
-              placeholder="Search…"
+              placeholder="Search the album…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input-field pl-9 py-1.5 text-sm h-9"
@@ -123,28 +126,34 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="text-[#8a8a8a] text-sm sm:ml-auto">
+          <div className="meta-text sm:ml-auto">
             {isLoading ? "Loading…" : `${Number(total)} frame${Number(total) !== 1 ? "s" : ""}`}
           </div>
         </div>
       </section>
 
       {/* ── GALLERY ────────────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-5 sm:px-8 py-10">
+      <section className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <p className="section-label mb-2">The Album</p>
+            <h2 className="display text-3xl sm:text-4xl text-[var(--text-1)]">Frames for collection</h2>
+          </div>
+        </div>
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i}/>)}
           </div>
         ) : !deployed ? (
           <div className="py-24 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-5 text-amber-500">
+            <div className="w-16 h-16 rounded-full bg-[var(--gold-bg)] border border-[rgba(217,178,79,0.4)] flex items-center justify-center mx-auto mb-5 text-[var(--gold)]">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-[#0a0a0a] mb-2">Contract not deployed</h3>
-            <p className="text-[#8a8a8a] text-sm max-w-sm mx-auto">
-              Set <code className="bg-[#f0f0f0] px-1.5 py-0.5 rounded text-xs">NEXT_PUBLIC_CONTRACT_ADDRESS</code> in your .env.local file.
+            <h3 className="display text-2xl text-[var(--text-1)] mb-2">Contract not deployed</h3>
+            <p className="text-[var(--text-3)] text-sm max-w-sm mx-auto">
+              Set <code className="bg-[var(--bg-2)] px-1.5 py-0.5 rounded text-xs text-[var(--gold)]">NEXT_PUBLIC_CONTRACT_ADDRESS</code> in your .env.local file.
             </p>
             <a href="https://testnet.arcscan.app" target="_blank" rel="noopener noreferrer" className="btn-secondary mt-6 text-sm">
               Open ArcScan ↗
@@ -152,17 +161,17 @@ export default function HomePage() {
           </div>
         ) : displayed.length === 0 ? (
           <div className="py-24 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-[#f7f7f7] border border-[#e4e4e4] flex items-center justify-center mx-auto mb-5 text-[#c4c4c4]">
+            <div className="w-16 h-16 rounded-full bg-[var(--bg-2)] border border-[var(--border-2)] flex items-center justify-center mx-auto mb-5 text-[var(--text-3)]">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.25">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z"/>
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-[#0a0a0a] mb-2">No frames found</h3>
-            <p className="text-[#8a8a8a] text-sm">
+            <h3 className="display text-2xl text-[var(--text-1)] mb-2">No frames found</h3>
+            <p className="text-[var(--text-3)] text-sm">
               {search || cat !== "all" ? "Try a different search or filter." : "No photos listed yet."}
             </p>
             {(search || cat !== "all") && (
-              <button onClick={() => { setSearch(""); setCat("all"); }} className="btn-ghost mt-4 text-sm text-[#1a1aff]">
+              <button onClick={() => { setSearch(""); setCat("all"); }} className="btn-ghost mt-4 text-sm text-[var(--gold)]">
                 Clear filters
               </button>
             )}
@@ -185,7 +194,7 @@ export default function HomePage() {
                 >
                   ← Prev
                 </button>
-                <span className="text-sm text-[#8a8a8a] px-3">
+                <span className="text-sm text-[var(--text-2)] px-3 font-mono">
                   {Number(currentPage)} / {Number(totalPages)}
                 </span>
                 <button
@@ -202,28 +211,30 @@ export default function HomePage() {
       </section>
 
       {/* ── AGENT PANEL ────────────────────────────────────── */}
-      <section className="bg-white/60 backdrop-blur-sm border-t border-[#e4e4e4] py-16 px-5 sm:px-8">
+      <section className="border-t border-[var(--border)] py-16 px-5 sm:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <p className="section-label mb-2">Automation</p>
-            <h2 className="text-3xl font-black text-[#0a0a0a] tracking-tight">Agent Simulation</h2>
+            <p className="section-label mb-2">Automation · Client-side demo</p>
+            <h2 className="display text-3xl sm:text-4xl text-[var(--text-1)]">Agent Simulation</h2>
           </div>
           <AgentPanel onPurchase={onPurchased}/>
         </div>
       </section>
 
       {/* ── FOOTER ─────────────────────────────────────────── */}
-      <footer className="border-t border-[#e4e4e4] py-8 px-5 sm:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[#8a8a8a]">
-          <div className="font-bold text-[#0a0a0a] tracking-tight">EventProof</div>
+      <footer className="border-t border-[var(--border)] py-10 px-5 sm:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-[var(--text-3)]">
+          <div className="display text-xl text-[var(--text-1)]">
+            Event<span className="gold-text">Proof</span>
+          </div>
           <div className="flex items-center gap-5">
-            <a href={`https://testnet.arcscan.app/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="hover:text-[#0a0a0a] transition-colors">
+            <a href={`https://testnet.arcscan.app/address/${CONTRACT_ADDRESS}`} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--gold)] transition-colors">
               Contract ↗
             </a>
-            <a href="https://docs.arc.network" target="_blank" rel="noopener noreferrer" className="hover:text-[#0a0a0a] transition-colors">
+            <a href="https://docs.arc.network" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--gold)] transition-colors">
               ARC Docs ↗
             </a>
-            <span className="font-mono text-xs text-[#c4c4c4]">
+            <span className="font-mono text-xs text-[var(--text-3)]">
               {CONTRACT_ADDRESS.slice(0, 8)}…{CONTRACT_ADDRESS.slice(-6)}
             </span>
           </div>

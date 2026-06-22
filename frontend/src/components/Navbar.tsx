@@ -9,6 +9,7 @@ import {
 import { injected } from "wagmi/connectors";
 import { shortenAddress, ARC_TESTNET_CHAIN_ID } from "@/lib/contract";
 import { useState, useEffect } from "react";
+import { Logo } from "@/components/Logo";
 
 function IconMenu() {
   return (
@@ -79,24 +80,38 @@ export function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#e4e4e4]">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-14">
+      {/* ── Thin top metadata bar (editorial "species" strip) ── */}
+      <div className="fixed top-0 left-0 right-0 z-50 hidden sm:block bg-[#0a1310]/90 backdrop-blur border-b border-[var(--border)]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-7 flex items-center justify-between meta-text">
+          <span className="italic font-serif normal-case tracking-wide text-[var(--text-2)] text-[12px]">
+            Nymphaea nocturna
+          </span>
+          <span className="hidden md:inline text-[var(--gold-soft)]">VOL. 01 — NOCTURNE</span>
+          <span>14.5995° N · 120.9842° E</span>
+        </div>
+      </div>
+
+      <header className="fixed top-0 sm:top-7 left-0 right-0 z-50 bg-[#0a1310]/80 backdrop-blur-md border-b border-[var(--border)]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link href="/" className="font-black text-[#0a0a0a] text-lg tracking-tight leading-none select-none">
-            EventProof
+          <Link href="/" className="flex items-center gap-2.5 select-none group">
+            <Logo size={28} />
+            <span className="display text-[var(--text-1)] text-2xl leading-none tracking-tight">
+              Event<span className="gold-text">Proof</span>
+            </span>
           </Link>
 
           {/* Desktop links */}
-          <nav className="hidden md:flex items-center gap-0.5">
+          <nav className="hidden md:flex items-center gap-1">
             {links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-1.5 rounded-sm text-sm font-medium tracking-wide transition-colors ${
                   pathname === l.href
-                    ? "bg-[#f0f0f0] text-[#0a0a0a]"
-                    : "text-[#6a6a6a] hover:bg-[#f7f7f7] hover:text-[#0a0a0a]"
+                    ? "text-[var(--gold)] bg-[var(--gold-bg)]"
+                    : "text-[var(--text-2)] hover:text-[var(--gold)] hover:bg-[var(--bg-2)]"
                 }`}
               >
                 {l.label}
@@ -106,7 +121,7 @@ export function Navbar() {
               href="https://testnet.arcscan.app"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1.5 rounded-md text-sm font-medium text-[#8a8a8a] hover:bg-[#f7f7f7] hover:text-[#0a0a0a] transition-colors flex items-center gap-1"
+              className="px-3 py-1.5 rounded-sm text-sm font-medium text-[var(--text-3)] hover:text-[var(--gold)] hover:bg-[var(--bg-2)] transition-colors flex items-center gap-1"
             >
               Explorer
               <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-2.5 h-2.5">
@@ -119,7 +134,7 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             {/* Switching network indicator */}
             {isSwitching && (
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#e4e4e4] bg-[#f7f7f7] text-[#8a8a8a] text-xs font-medium">
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-[var(--border-2)] bg-[var(--bg-2)] text-[var(--text-3)] text-xs font-medium">
                 <Spinner />
                 Switching to ARC…
               </div>
@@ -129,9 +144,9 @@ export function Navbar() {
             {isWrongNetwork && !isSwitching && (
               <button
                 onClick={() => switchChain({ chainId: ARC_TESTNET_CHAIN_ID })}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-amber-300 bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100 transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-[rgba(217,178,79,0.4)] bg-[var(--gold-bg)] text-[var(--gold)] text-xs font-semibold hover:brightness-110 transition-all"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"/>
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--gold)]"/>
                 Switch to ARC
               </button>
             )}
@@ -139,21 +154,21 @@ export function Navbar() {
             {isConnected && address ? (
               <div className="flex items-center gap-2">
                 {/* Balance + address badge */}
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#f7f7f7] border border-[#e4e4e4] text-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"/>
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[var(--bg-2)] border border-[var(--border-2)] text-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)] flex-shrink-0"/>
                   {balanceData && (
-                    <span className="text-[#1a1aff] font-semibold tabular-nums">
+                    <span className="text-[var(--gold)] font-semibold tabular-nums">
                       {formatBalance(balanceData.value, balanceData.decimals)} {balanceData.symbol}
                     </span>
                   )}
-                  <span className="text-[#c4c4c4]">|</span>
-                  <span className="text-[#4a4a4a] font-mono tracking-tight">
+                  <span className="text-[var(--border-2)]">|</span>
+                  <span className="text-[var(--text-2)] font-mono tracking-tight">
                     {shortenAddress(address)}
                   </span>
                 </div>
                 <button
                   onClick={() => disconnect()}
-                  className="btn-ghost text-xs text-[#8a8a8a]"
+                  className="btn-ghost text-xs"
                 >
                   Disconnect
                 </button>
@@ -182,17 +197,17 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="md:hidden fixed inset-0 z-40 bg-white pt-14">
-          <nav className="p-5 flex flex-col gap-1 border-t border-[#e4e4e4]">
+        <div className="md:hidden fixed inset-0 z-40 bg-[#0a1310] pt-16">
+          <nav className="p-5 flex flex-col gap-1 border-t border-[var(--border)]">
             {links.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setOpen(false)}
-                className={`px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                className={`px-4 py-3 rounded-sm text-base font-medium transition-colors ${
                   pathname === l.href
-                    ? "bg-[#f0f0f0] text-[#0a0a0a]"
-                    : "text-[#4a4a4a] hover:bg-[#f7f7f7]"
+                    ? "bg-[var(--gold-bg)] text-[var(--gold)]"
+                    : "text-[var(--text-2)] hover:bg-[var(--bg-2)]"
                 }`}
               >
                 {l.label}
@@ -202,16 +217,16 @@ export function Navbar() {
               href="https://testnet.arcscan.app"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-4 py-3 rounded-xl text-base font-medium text-[#8a8a8a]"
+              className="px-4 py-3 rounded-sm text-base font-medium text-[var(--text-3)]"
               onClick={() => setOpen(false)}
             >
               Explorer ↗
             </a>
             {/* Balance on mobile */}
             {isConnected && balanceData && (
-              <div className="mt-3 px-4 py-3 rounded-xl bg-[#f7f7f7] border border-[#e4e4e4]">
-                <p className="text-xs text-[#8a8a8a] mb-1">Balance</p>
-                <p className="text-[#1a1aff] font-bold">
+              <div className="mt-3 px-4 py-3 rounded-sm bg-[var(--bg-2)] border border-[var(--border)]">
+                <p className="text-xs text-[var(--text-3)] mb-1">Balance</p>
+                <p className="text-[var(--gold)] font-bold">
                   {formatBalance(balanceData.value, balanceData.decimals)} {balanceData.symbol}
                 </p>
               </div>

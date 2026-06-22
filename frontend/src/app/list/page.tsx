@@ -24,8 +24,8 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   return (
     <div className="space-y-2">
       <div className="flex items-baseline gap-2">
-        <label className="text-[#0a0a0a] text-sm font-semibold">{label}</label>
-        {hint && <span className="text-[#8a8a8a] text-xs">{hint}</span>}
+        <label className="text-[var(--text-1)] text-sm font-semibold">{label}</label>
+        {hint && <span className="text-[var(--text-3)] text-xs">{hint}</span>}
       </div>
       {children}
     </div>
@@ -70,16 +70,16 @@ export default function ListPhotoPage() {
   if (!isConnected) return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="max-w-lg mx-auto px-5 pt-36 pb-16">
+      <div className="max-w-lg mx-auto px-5 pt-44 pb-16">
         <div className="card p-10 flex flex-col items-center text-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#f0f0f0] border border-[#e4e4e4] flex items-center justify-center text-[#8a8a8a]">
+          <div className="w-14 h-14 rounded-full bg-[var(--bg-2)] border border-[var(--border-2)] flex items-center justify-center text-[var(--text-3)]">
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
               <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
           </div>
           <div>
-            <h3 className="text-[#0a0a0a] font-bold text-lg mb-1">Connect your wallet</h3>
-            <p className="text-[#8a8a8a] text-sm">Only the contract photographer can list frames.</p>
+            <h3 className="display text-[var(--text-1)] text-xl mb-1">Connect your wallet</h3>
+            <p className="text-[var(--text-3)] text-sm">Only the contract photographer can list frames.</p>
           </div>
         </div>
       </div>
@@ -90,18 +90,18 @@ export default function ListPhotoPage() {
   if (!isOwner) return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="max-w-lg mx-auto px-5 pt-36 pb-16">
+      <div className="max-w-lg mx-auto px-5 pt-44 pb-16">
         <div className="card p-10 flex flex-col items-center text-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-400">
+          <div className="w-14 h-14 rounded-full bg-[var(--danger-bg)] border border-[rgba(224,138,130,0.35)] flex items-center justify-center text-[var(--danger)]">
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
               <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
             </svg>
           </div>
           <div>
-            <h3 className="text-[#0a0a0a] font-bold text-lg mb-1">Not authorised</h3>
-            <p className="text-[#8a8a8a] text-sm">Only the contract owner can list photos.</p>
+            <h3 className="display text-[var(--text-1)] text-xl mb-1">Not authorised</h3>
+            <p className="text-[var(--text-3)] text-sm">Only the contract owner can list photos.</p>
           </div>
-          <div className="font-mono text-xs text-[#8a8a8a] bg-[#f7f7f7] border border-[#e4e4e4] px-3 py-1.5 rounded-lg">
+          <div className="font-mono text-xs text-[var(--text-3)] bg-[var(--bg-2)] border border-[var(--border)] px-3 py-1.5 rounded-sm">
             Owner: {contractOwner ? `${(contractOwner as string).slice(0, 10)}…${(contractOwner as string).slice(-6)}` : "—"}
           </div>
         </div>
@@ -113,26 +113,26 @@ export default function ListPhotoPage() {
   if (isSuccess) return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="max-w-lg mx-auto px-5 pt-36 pb-16">
+      <div className="max-w-lg mx-auto px-5 pt-44 pb-16">
         <div className="card p-10 flex flex-col items-center text-center gap-5 animate-fade-in">
-          <div className="w-14 h-14 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center text-green-600">
+          <div className="w-14 h-14 rounded-full bg-[var(--success-bg)] border border-[rgba(127,209,160,0.35)] flex items-center justify-center text-[var(--success)]">
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
           </div>
           <div>
-            <h3 className="text-[#0a0a0a] font-bold text-xl mb-1">Frame listed!</h3>
-            <p className="text-[#8a8a8a] text-sm">Your photo is now available for purchase.</p>
+            <h3 className="display text-[var(--text-1)] text-2xl mb-1">Frame listed!</h3>
+            <p className="text-[var(--text-3)] text-sm">Your photo is now available for purchase.</p>
           </div>
           {txHash && (
             <a href={`https://testnet.arcscan.app/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm">
               View on ArcScan ↗
             </a>
           )}
-          <div className="h-px w-full bg-[#e4e4e4]"/>
+          <div className="h-px w-full bg-[var(--border)]"/>
           <button
             onClick={() => setForm({ metadataUri: "", fileHash: "", price: "0.10", title: "", description: "" })}
-            className="btn-ghost text-sm text-[#1a1aff]"
+            className="btn-ghost text-sm text-[var(--gold)]"
           >
             + List another frame
           </button>
@@ -145,15 +145,15 @@ export default function ListPhotoPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="max-w-2xl mx-auto px-5 sm:px-8 pt-24 pb-20">
+      <div className="max-w-2xl mx-auto px-5 sm:px-8 pt-32 sm:pt-36 pb-20">
 
-        <div className="py-10 border-b border-[#e4e4e4] mb-10">
+        <div className="py-10 border-b border-[var(--border)] mb-10">
           <p className="section-label mb-2">Photographer Panel</p>
-          <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-black text-[#0a0a0a] tracking-tight leading-none">
-            List a Frame
+          <h1 className="display text-[clamp(2.4rem,6vw,4rem)] text-[var(--text-1)]">
+            List a <span className="gold-text italic">Frame</span>
           </h1>
-          <p className="text-[#8a8a8a] text-base mt-3">
-            Add a photo to the on-chain gallery. Buyers receive an NFT proof of purchase.
+          <p className="text-[var(--text-2)] text-base mt-3 font-light">
+            Add a photo to the on-chain album. Buyers receive an NFT proof of purchase.
           </p>
         </div>
 
@@ -169,7 +169,7 @@ export default function ListPhotoPage() {
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className="input-field resize-none"/>
           </Field>
 
-          <div className="h-px bg-[#e4e4e4]"/>
+          <div className="h-px bg-[var(--border)]"/>
 
           <Field label="Metadata URI" hint="IPFS JSON with name, image, attributes — required">
             <input type="text" placeholder="ipfs://Qm... or https://..." value={form.metadataUri} required
@@ -177,10 +177,10 @@ export default function ListPhotoPage() {
           </Field>
 
           <Field label="File Hash" hint="SHA-256 / keccak256 — required">
-            <div className="flex gap-1 p-1 rounded-lg border border-[#e4e4e4] bg-[#f7f7f7] w-fit mb-3">
+            <div className="flex gap-1 p-1 rounded-sm border border-[var(--border-2)] bg-[var(--bg-1)] w-fit mb-3">
               {(["generate", "manual"] as const).map((m) => (
                 <button key={m} type="button" onClick={() => setHashMode(m)}
-                  className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors capitalize ${hashMode === m ? "bg-white border border-[#e4e4e4] text-[#0a0a0a] shadow-sm" : "text-[#8a8a8a] hover:text-[#0a0a0a]"}`}>
+                  className={`text-xs px-3 py-1.5 rounded-sm font-medium transition-colors capitalize ${hashMode === m ? "bg-[var(--gold-bg)] border border-[rgba(217,178,79,0.4)] text-[var(--gold)]" : "text-[var(--text-3)] hover:text-[var(--gold)]"}`}>
                   {m === "generate" ? "Auto-generate" : "Manual"}
                 </button>
               ))}
@@ -188,7 +188,7 @@ export default function ListPhotoPage() {
             {hashMode === "generate" ? (
               <div className="flex gap-2">
                 <input type="text" value={generatedHash} readOnly placeholder="Click Generate…"
-                  className="input-field font-mono text-xs text-[#8a8a8a] flex-1"/>
+                  className="input-field font-mono text-xs text-[var(--text-3)] flex-1"/>
                 <button type="button" onClick={generateHash} className="btn-secondary text-sm py-2.5 px-4 flex-shrink-0">
                   ↺ Generate
                 </button>
@@ -199,31 +199,31 @@ export default function ListPhotoPage() {
             )}
           </Field>
 
-          <div className="h-px bg-[#e4e4e4]"/>
+          <div className="h-px bg-[var(--border)]"/>
 
           <Field label="Licence Price (USDC)">
             <div className="flex flex-wrap gap-2 mb-3">
               {PRESETS.map((p) => (
                 <button key={p} type="button" onClick={() => setForm((f) => ({ ...f, price: p.toFixed(2) }))}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${form.price === p.toFixed(2) ? "bg-[#0a0a0a] border-[#0a0a0a] text-white" : "bg-white border-[#e4e4e4] text-[#4a4a4a] hover:border-[#0a0a0a]"}`}>
+                  className={`px-4 py-2 rounded-sm text-sm font-semibold border transition-all ${form.price === p.toFixed(2) ? "bg-[var(--gold-bg)] border-[rgba(217,178,79,0.5)] text-[var(--gold)]" : "bg-[var(--bg-1)] border-[var(--border-2)] text-[var(--text-2)] hover:border-[var(--gold-soft)]"}`}>
                   ${p.toFixed(2)}
                 </button>
               ))}
             </div>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8a8a8a] text-sm">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-3)] text-sm">$</span>
               <input type="number" step="0.01" min="0.01" max="100" value={form.price}
                 onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} className="input-field pl-7 pr-16"/>
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8a8a8a] text-xs font-medium">USDC</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-3)] text-xs font-medium">USDC</span>
             </div>
           </Field>
 
           {writeError && (
-            <div className="flex gap-3 items-start bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-              <svg className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+            <div className="flex gap-3 items-start bg-[var(--danger-bg)] border border-[rgba(224,138,130,0.35)] rounded-sm px-4 py-3">
+              <svg className="w-4 h-4 text-[var(--danger)] flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
               </svg>
-              <p className="text-red-600 text-sm">{writeError.message.slice(0, 200)}</p>
+              <p className="text-[var(--danger)] text-sm">{writeError.message.slice(0, 200)}</p>
             </div>
           )}
 
@@ -234,8 +234,8 @@ export default function ListPhotoPage() {
             }
           </button>
 
-          <p className="text-[#8a8a8a] text-xs text-center">
-            Calls <code className="bg-[#f0f0f0] px-1 py-0.5 rounded">listPhoto()</code> on the contract.
+          <p className="text-[var(--text-3)] text-xs text-center">
+            Calls <code className="bg-[var(--bg-2)] px-1 py-0.5 rounded text-[var(--gold)]">listPhoto()</code> on the contract.
             File hash and metadata URI stored permanently on-chain.
           </p>
         </form>

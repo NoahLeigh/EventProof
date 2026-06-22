@@ -20,10 +20,10 @@ let logId = 0;
 const ts = () => new Date().toLocaleTimeString("en-US", { hour12: false });
 
 const LOG_COLOR: Record<AgentLog["type"], string> = {
-  buyer:   "#1a1aff",
-  counter: "#16a34a",
-  info:    "#8a8a8a",
-  error:   "#dc2626",
+  buyer:   "#d9b24f",
+  counter: "#7fd1a0",
+  info:    "#7d8c7e",
+  error:   "#e08a82",
 };
 
 const LOG_PREFIX: Record<AgentLog["type"], string> = {
@@ -114,17 +114,17 @@ export function AgentPanel({ onPurchase }: AgentPanelProps) {
   return (
     <div className="card overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-5 border-b border-[#e4e4e4] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="px-6 py-5 border-b border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-[#0a0a0a] font-bold text-base">Agent Simulation</h2>
-          <p className="text-[#8a8a8a] text-sm mt-0.5">
-            Buyer agent reads on-chain gallery · Counter agent tracks session stats
+          <h2 className="display text-[var(--text-1)] text-xl">Buyer &amp; Counter Agents</h2>
+          <p className="text-[var(--text-3)] text-sm mt-0.5">
+            Read-only client-side demo · Buyer reads on-chain gallery · Counter tracks session stats
           </p>
         </div>
         <div className="flex items-center gap-3">
           {isRunning && (
-            <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
-              <span className="w-2 h-2 rounded-full bg-green-500"/>
+            <div className="flex items-center gap-2 text-sm text-[var(--success)] font-medium">
+              <span className="w-2 h-2 rounded-full bg-[var(--success)]"/>
               Running
             </div>
           )}
@@ -141,53 +141,53 @@ export function AgentPanel({ onPurchase }: AgentPanelProps) {
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-3 divide-x divide-[#e4e4e4] border-b border-[#e4e4e4]">
+      <div className="grid grid-cols-3 divide-x divide-[var(--border)] border-b border-[var(--border)]">
         {[
           { label: "Total Sales",   value: Number(stats.totalSales).toString() },
           { label: "USDC Earned",   value: `$${formatUsdc(stats.totalEarned)}` },
           { label: "Session Age",   value: stats.sessionDuration > 0n ? fmtDuration(stats.sessionDuration) : "—" },
         ].map((s) => (
-          <div key={s.label} className="px-6 py-4 text-center">
-            <div className="text-2xl font-bold text-[#0a0a0a] tabular-nums">{s.value}</div>
-            <div className="text-xs text-[#8a8a8a] mt-1 uppercase tracking-wide font-medium">{s.label}</div>
+          <div key={s.label} className="px-6 py-5 text-center">
+            <div className="display text-3xl text-[var(--gold)] tabular-nums">{s.value}</div>
+            <div className="meta-text mt-1.5">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Terminal */}
       <div className="p-5">
-        <div className="rounded-xl overflow-hidden border border-[#e4e4e4]">
+        <div className="rounded-sm overflow-hidden border border-[var(--border-2)]">
           {/* Title bar */}
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-[#f7f7f7] border-b border-[#e4e4e4]">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-[var(--bg-2)] border-b border-[var(--border-2)]">
             <div className="flex gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#e4e4e4]"/>
-              <span className="w-2.5 h-2.5 rounded-full bg-[#e4e4e4]"/>
-              <span className="w-2.5 h-2.5 rounded-full bg-[#e4e4e4]"/>
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--gold-deep)]"/>
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--border-2)]"/>
+              <span className="w-2.5 h-2.5 rounded-full bg-[var(--border-2)]"/>
             </div>
-            <span className="text-[#8a8a8a] text-xs font-mono ml-1">agent.log</span>
+            <span className="text-[var(--text-3)] text-xs font-mono ml-1">agent.log</span>
           </div>
           {/* Log body */}
           <div
             ref={logRef}
-            className="h-48 overflow-y-auto p-4 bg-white font-mono text-[11.5px] leading-relaxed space-y-0.5"
+            className="h-48 overflow-y-auto p-4 bg-[#08110d] font-mono text-[11.5px] leading-relaxed space-y-0.5"
           >
             {logs.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-[#c4c4c4] text-xs">
+              <div className="h-full flex items-center justify-center text-[var(--text-3)] text-xs">
                 Press &ldquo;Run Agents&rdquo; to start_
               </div>
             ) : (
               logs.map((log) => (
                 <div key={log.id} className="flex gap-3">
-                  <span className="text-[#c4c4c4] tabular-nums flex-shrink-0 w-16">{log.timestamp}</span>
+                  <span className="text-[var(--text-3)] tabular-nums flex-shrink-0 w-16">{log.timestamp}</span>
                   <span className="flex-shrink-0 w-12 font-semibold" style={{ color: LOG_COLOR[log.type] }}>
                     {LOG_PREFIX[log.type]}
                   </span>
-                  <span style={{ color: LOG_COLOR[log.type] === "#8a8a8a" ? "#6a6a6a" : LOG_COLOR[log.type] }}>
+                  <span style={{ color: LOG_COLOR[log.type] === "#7d8c7e" ? "#b9c4b3" : LOG_COLOR[log.type] }}>
                     {log.message}
                   </span>
                   {log.txHash && (
                     <a href={`https://testnet.arcscan.app/tx/${log.txHash}`} target="_blank" rel="noopener noreferrer"
-                      className="text-[#1a1aff] hover:underline flex-shrink-0">↗</a>
+                      className="text-[var(--gold)] hover:underline flex-shrink-0">↗</a>
                   )}
                 </div>
               ))

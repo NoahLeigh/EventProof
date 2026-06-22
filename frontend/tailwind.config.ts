@@ -31,9 +31,17 @@ const config: Config = {
           400: "#8a8a8a",
           300: "#aaaaaa",
         },
+        nocturne: {
+          bg:    "#0a1310",
+          card:  "#0e1a15",
+          gold:  "#d9b24f",
+          cream: "#f1ead8",
+          sage:  "#b9c4b3",
+        },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "Jost", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
         mono: ["'JetBrains Mono'", "'Fira Code'", "monospace"],
       },
       fontSize: {

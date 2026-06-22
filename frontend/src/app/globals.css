@@ -2,24 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400&display=swap');
+/* ═══════════════════════════════════════════════════════════════
+   EventProof — "Nocturne" dark botanical theme
+   Near-black green ground · flat lily-pads + white flowers ·
+   editorial serif display · gold accents · cream text.
+   Fonts loaded via next/font in layout.tsx:
+     --font-serif  (Cardo — display)
+     --font-sans   (Jost — body / UI)
+   ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Tokens ──────────────────────────────────────────────── */
 :root {
-  --bg: #ffffff;
-  --bg-subtle: #f7f7f7;
-  --bg-muted:  #f0f0f0;
-  --border:    #e4e4e4;
-  --border-dark: #d0d0d0;
-  --text-1:    #0a0a0a;
-  --text-2:    #4a4a4a;
-  --text-3:    #8a8a8a;
-  --accent:    #1a1aff;
-  --accent-bg: #f0f0ff;
-  --success:   #16a34a;
-  --success-bg: #f0fdf4;
-  --danger:    #dc2626;
-  --danger-bg: #fef2f2;
+  /* Ground — nocturnal greens */
+  --bg:          #0a1310;   /* near-black green */
+  --bg-1:        #0e1a15;   /* card */
+  --bg-2:        #122019;   /* raised */
+  --bg-3:        #16271e;   /* hover */
+
+  /* Lines */
+  --border:      #20342a;
+  --border-2:    #2c463a;
+
+  /* Botanical greens (lily pads) */
+  --pad-1:       #14241c;
+  --pad-2:       #1b3327;
+  --pad-3:       #244534;
+  --pad-deep:    #0d1b14;
+
+  /* Text — cream */
+  --text-1:      #f1ead8;   /* primary cream */
+  --text-2:      #b9c4b3;   /* muted sage */
+  --text-3:      #7d8c7e;   /* dim */
+
+  /* Gold accent */
+  --gold:        #d9b24f;
+  --gold-soft:   #c9a44c;
+  --gold-deep:   #9c7e34;
+  --gold-bg:     rgba(217,178,79,0.10);
+
+  /* Semantic */
+  --success:     #7fd1a0;
+  --success-bg:  rgba(127,209,160,0.10);
+  --danger:      #e08a82;
+  --danger-bg:   rgba(224,138,130,0.10);
+
+  /* legacy accent alias (kept so any stray class still resolves) */
+  --accent:      var(--gold-soft);
+  --accent-bg:   var(--gold-bg);
 }
 
 /* ─── Base ───────────────────────────────────────────────── */
@@ -32,37 +61,98 @@ html {
 }
 
 body {
-  background: #f3f4f6;
-  background-image:
-    radial-gradient(ellipse 70% 60% at 20% 10%, rgba(200,210,255,0.35) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(220,225,255,0.25) 0%, transparent 50%),
-    radial-gradient(ellipse 40% 30% at 60% 20%, rgba(240,242,255,0.20) 0%, transparent 45%);
-  background-attachment: fixed;
-  animation: bgShift 12s ease-in-out infinite alternate;
+  background: var(--bg);
   color: var(--text-1);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-sans), Jost, system-ui, sans-serif;
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.6;
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Fixed botanical backdrop layer (painted by .nocturne-bg in markup) */
+.nocturne-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 0%,  rgba(36,69,52,0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 90% 95%, rgba(27,51,39,0.50) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(13,27,20,0.30) 0%, transparent 60%),
+    var(--bg);
+}
+
+/* Grain overlay */
+.nocturne-grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ─── Type helpers ───────────────────────────────────────── */
+.font-serif { font-family: var(--font-serif), Georgia, serif; }
+.display {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
+}
+
+/* Gold shimmering display accent */
+.gold-text {
+  background: linear-gradient(100deg, var(--gold-deep) 0%, var(--gold) 40%, #f4e3a8 50%, var(--gold) 60%, var(--gold-deep) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: goldShimmer 7s linear infinite;
+}
+
+.section-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  font-family: var(--font-sans), sans-serif;
+}
+
+.meta-text {
+  font-family: var(--font-sans), monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-3);
 }
 
 /* ─── Components ─────────────────────────────────────────── */
 @layer components {
 
-  /* Card */
+  /* Card — dark glass with gold hairline */
   .card {
-    background: var(--bg);
+    background: linear-gradient(180deg, rgba(18,32,25,0.92) 0%, rgba(14,26,21,0.92) 100%);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 4px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 
   .card-hover {
     @apply card;
-    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
   }
   .card-hover:hover {
-    border-color: var(--border-dark);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-color: var(--border-2);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--gold-bg);
+    transform: translateY(-3px);
   }
 
   /* Buttons */
@@ -71,49 +161,47 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background: var(--text-1);
-    color: #ffffff;
+    background: linear-gradient(180deg, var(--gold) 0%, var(--gold-soft) 100%);
+    color: #15110a;
     font-weight: 600;
     font-size: 0.875rem;
+    letter-spacing: 0.02em;
     padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    border: 1px solid var(--text-1);
+    border-radius: 3px;
+    border: 1px solid var(--gold-deep);
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: filter 0.2s, box-shadow 0.2s;
     white-space: nowrap;
   }
   .btn-primary:hover:not(:disabled) {
-    opacity: 0.85;
+    filter: brightness(1.08);
+    box-shadow: 0 0 24px rgba(217,178,79,0.25);
   }
-  .btn-primary:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .btn-secondary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background: var(--bg);
+    background: transparent;
     color: var(--text-1);
     font-weight: 500;
     font-size: 0.875rem;
+    letter-spacing: 0.02em;
     padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    border: 1px solid var(--border-dark);
+    border-radius: 3px;
+    border: 1px solid var(--border-2);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
     white-space: nowrap;
   }
   .btn-secondary:hover:not(:disabled) {
-    background: var(--bg-subtle);
-    border-color: var(--text-1);
+    background: var(--bg-3);
+    border-color: var(--gold-soft);
+    color: var(--gold);
   }
-  .btn-secondary:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
+  .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .btn-ghost {
     display: inline-flex;
@@ -125,15 +213,12 @@ body {
     font-weight: 500;
     font-size: 0.875rem;
     padding: 0.5rem 0.75rem;
-    border-radius: 6px;
+    border-radius: 3px;
     border: none;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.2s, color 0.2s;
   }
-  .btn-ghost:hover {
-    background: var(--bg-subtle);
-    color: var(--text-1);
-  }
+  .btn-ghost:hover { background: var(--bg-2); color: var(--gold); }
 
   .btn-danger {
     display: inline-flex;
@@ -144,31 +229,29 @@ body {
     font-weight: 500;
     font-size: 0.8125rem;
     padding: 0.5rem 1rem;
-    border-radius: 6px;
-    border: 1px solid #fca5a5;
+    border-radius: 3px;
+    border: 1px solid rgba(224,138,130,0.35);
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.2s;
   }
-  .btn-danger:hover {
-    background: #fee2e2;
-  }
+  .btn-danger:hover { background: rgba(224,138,130,0.18); }
 
   /* Input */
   .input-field {
     width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border-dark);
-    border-radius: 8px;
+    background: var(--bg-1);
+    border: 1px solid var(--border-2);
+    border-radius: 3px;
     padding: 0.75rem 1rem;
     color: var(--text-1);
     font-size: 0.875rem;
     outline: none;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
   .input-field::placeholder { color: var(--text-3); }
   .input-field:focus {
-    border-color: var(--text-1);
-    box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    border-color: var(--gold-soft);
+    box-shadow: 0 0 0 3px var(--gold-bg);
   }
 
   /* Badge */
@@ -180,134 +263,147 @@ body {
     border-radius: 99px;
     font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
   .badge-green {
     @apply badge;
     background: var(--success-bg);
     color: var(--success);
-    border: 1px solid #bbf7d0;
+    border: 1px solid rgba(127,209,160,0.35);
   }
   .badge-blue {
     @apply badge;
-    background: var(--accent-bg);
-    color: var(--accent);
-    border: 1px solid #c7d2fe;
+    background: var(--gold-bg);
+    color: var(--gold);
+    border: 1px solid rgba(217,178,79,0.35);
   }
   .badge-yellow {
     @apply badge;
-    background: #fffbeb;
-    color: #92400e;
-    border: 1px solid #fde68a;
+    background: var(--gold-bg);
+    color: var(--gold);
+    border: 1px solid rgba(217,178,79,0.35);
   }
   .badge-gray {
     @apply badge;
-    background: var(--bg-muted);
+    background: var(--bg-2);
     color: var(--text-3);
     border: 1px solid var(--border);
   }
 
   /* Stat card */
-  .stat-card {
-    @apply card;
-    padding: 1.25rem 1.5rem;
-  }
+  .stat-card { @apply card; padding: 1.25rem 1.5rem; }
 
   /* Chip */
   .chip {
     display: inline-flex;
     align-items: center;
-    padding: 0.3rem 0.875rem;
+    padding: 0.3rem 0.9rem;
     border-radius: 99px;
     font-size: 0.8125rem;
     font-weight: 500;
-    background: var(--bg-subtle);
-    border: 1px solid var(--border);
+    letter-spacing: 0.03em;
+    background: transparent;
+    border: 1px solid var(--border-2);
     color: var(--text-2);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
   }
-  .chip:hover { background: var(--bg-muted); color: var(--text-1); }
+  .chip:hover { border-color: var(--gold-soft); color: var(--gold); }
   .chip.active {
-    background: var(--text-1);
-    border-color: var(--text-1);
-    color: #ffffff;
-  }
-
-  /* Section label */
-  .section-label {
-    font-size: 0.6875rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-3);
+    background: var(--gold-bg);
+    border-color: var(--gold-soft);
+    color: var(--gold);
   }
 
   /* Divider */
-  .divider {
-    height: 1px;
-    background: var(--border);
-  }
+  .divider { height: 1px; background: var(--border); }
 
-  /* Gradient text — using dark for light theme */
-  .gradient-text {
-    background: linear-gradient(135deg, #1a1aff 0%, #6644ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+  /* Gradient text alias → gold */
+  .gradient-text { @apply gold-text; }
 
-  /* Glass — not used much in light theme, but kept */
+  /* Glass */
   .glass {
-    background: rgba(255,255,255,0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(14,26,21,0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--border);
   }
 }
 
 /* ─── Scrollbar ───────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: #a0a0a0; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold-deep); }
 
 /* ─── Skeleton ───────────────────────────────────────────── */
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--bg-1) 25%, var(--bg-3) 50%, var(--bg-1) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.6s ease-in-out infinite;
-  border-radius: 6px;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: 3px;
 }
 
 /* ─── Focus ring ─────────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid rgba(0,0,0,0.5);
+  outline: 2px solid var(--gold-soft);
   outline-offset: 2px;
 }
 
 /* ─── Selection ──────────────────────────────────────────── */
-::selection { background: #dbeafe; color: #1e3a8a; }
+::selection { background: rgba(217,178,79,0.30); color: var(--text-1); }
 
-/* ─── Animations (minimal) ───────────────────────────────── */
+/* ─── Table ──────────────────────────────────────────────── */
+.table-row-hover:hover { background: var(--bg-2); }
+
+/* ═══ Animations ═══════════════════════════════════════════ */
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
 }
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-
-@keyframes bgShift {
-  0%   { background-position: 20% 10%, 80% 80%, 60% 20%; }
-  33%  { background-position: 35% 25%, 65% 65%, 75% 35%; }
-  66%  { background-position: 15% 40%, 85% 55%, 50% 15%; }
-  100% { background-position: 25% 15%, 75% 75%, 65% 25%; }
+@keyframes goldShimmer {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 220% 50%; }
+}
+/* Lily-pad / flower gentle drift */
+@keyframes drift {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  50%  { transform: translate(14px, -18px) rotate(4deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+@keyframes driftSlow {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  50%  { transform: translate(-18px, 12px) rotate(-3deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+@keyframes floatPetal {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+  50%  { transform: translateY(-22px) rotate(8deg); opacity: 1; }
+  100% { transform: translateY(0) rotate(0deg); opacity: 0.9; }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.85; }
+  50%      { opacity: 1; }
 }
 
-.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-fade-in { animation: fadeIn 0.5s ease-out; }
 
-/* ─── Table ──────────────────────────────────────────────── */
-.table-row-hover:hover { background: var(--bg-subtle); }
+/* Backdrop element motion */
+.bg-pad   { animation: drift 26s ease-in-out infinite; transform-origin: center; }
+.bg-pad-2 { animation: driftSlow 32s ease-in-out infinite; transform-origin: center; }
+.bg-flower { animation: floatPetal 14s ease-in-out infinite; transform-origin: center; }
+
+/* Respect reduced motion — kill ALL decorative motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .gold-text { -webkit-text-fill-color: var(--gold); color: var(--gold); }
+}
