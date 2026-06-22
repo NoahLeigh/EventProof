@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+cache/
+artifacts/
+typechain-types/
+frontend/.next/
+frontend/out/
+
+# Environment files (secrets)
+.env
+frontend/.env.local
+
+# Deployment info (generated)
+deployments/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
