@@ -1,7 +1,7 @@
 import { parseAbi } from "viem";
 
 export const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
-  "0x0000000000000000000000000000000000000000") as `0x${string}`;
+  "0x909b82B77050b340F77060C576f4742e2Ee45AB0") as `0x${string}`;
 
 export const ARC_TESTNET_CHAIN_ID = 5042002;
 

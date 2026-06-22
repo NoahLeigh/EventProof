@@ -7,287 +7,238 @@ import { EVENT_PROOF_ABI, CONTRACT_ADDRESS, usdcToWei } from "@/lib/contract";
 import { keccak256, toBytes } from "viem";
 
 function sha256ToBytes32(hash: string): `0x${string}` {
-  // Expects a hex string without 0x or a plain hex
   const hex = hash.replace(/^0x/, "").padStart(64, "0");
   return `0x${hex}` as `0x${string}`;
 }
 
+function Spinner() {
+  return (
+    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+    </svg>
+  );
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline gap-2">
+        <label className="text-[#0a0a0a] text-sm font-semibold">{label}</label>
+        {hint && <span className="text-[#8a8a8a] text-xs">{hint}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+const PRESETS = [0.10, 0.15, 0.25, 0.50, 1.00];
+
 export default function ListPhotoPage() {
   const { address, isConnected } = useAccount();
-
-  const [form, setForm] = useState({
-    metadataUri: "",
-    fileHash: "",
-    price: "0.10",
-    title: "",
-    description: "",
-  });
-
-  const [hashMode, setHashMode] = useState<"manual" | "generate">("generate");
+  const [form, setForm] = useState({ metadataUri: "", fileHash: "", price: "0.10", title: "", description: "" });
+  const [hashMode, setHashMode] = useState<"generate" | "manual">("generate");
   const [generatedHash, setGeneratedHash] = useState("");
 
-  const { data: contractOwner } = useReadContract({
-    address: CONTRACT_ADDRESS,
-    abi: EVENT_PROOF_ABI,
-    functionName: "owner",
-  });
-
+  const { data: contractOwner } = useReadContract({ address: CONTRACT_ADDRESS, abi: EVENT_PROOF_ABI, functionName: "owner" });
   const { writeContract, data: txHash, isPending, error: writeError } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
-  const isOwner =
-    contractOwner &&
-    address &&
-    (contractOwner as string).toLowerCase() === address.toLowerCase();
+  const isOwner = contractOwner && address && (contractOwner as string).toLowerCase() === address.toLowerCase();
 
   function generateHash() {
-    const input = `${form.title}:${form.description}:${Date.now()}`;
-    const hash = keccak256(toBytes(input));
-    setGeneratedHash(hash);
-    setForm((f) => ({ ...f, fileHash: hash }));
+    const h = keccak256(toBytes(`${form.title}:${form.description}:${Date.now()}`));
+    setGeneratedHash(h);
+    setForm((f) => ({ ...f, fileHash: h }));
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
     const uri = form.metadataUri.trim();
     const rawHash = hashMode === "generate" ? generatedHash : form.fileHash.trim();
     const priceNum = parseFloat(form.price);
-
     if (!uri || !rawHash || isNaN(priceNum) || priceNum <= 0) return;
-
-    const fileHashBytes32 = sha256ToBytes32(rawHash.replace(/^0x/, ""));
-    const priceWei = usdcToWei(priceNum);
-
     writeContract({
       address: CONTRACT_ADDRESS,
       abi: EVENT_PROOF_ABI,
       functionName: "listPhoto",
-      args: [uri, fileHashBytes32, priceWei],
+      args: [uri, sha256ToBytes32(rawHash.replace(/^0x/, "")), usdcToWei(priceNum)],
     });
   }
 
-  const PRICE_PRESETS = [0.10, 0.15, 0.20, 0.25, 0.30];
+  // Gate: not connected
+  if (!isConnected) return (
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="max-w-lg mx-auto px-5 pt-36 pb-16">
+        <div className="card p-10 flex flex-col items-center text-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-[#f0f0f0] border border-[#e4e4e4] flex items-center justify-center text-[#8a8a8a]">
+            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-[#0a0a0a] font-bold text-lg mb-1">Connect your wallet</h3>
+            <p className="text-[#8a8a8a] text-sm">Only the contract photographer can list frames.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
+  // Gate: not owner
+  if (!isOwner) return (
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="max-w-lg mx-auto px-5 pt-36 pb-16">
+        <div className="card p-10 flex flex-col items-center text-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-400">
+            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-[#0a0a0a] font-bold text-lg mb-1">Not authorised</h3>
+            <p className="text-[#8a8a8a] text-sm">Only the contract owner can list photos.</p>
+          </div>
+          <div className="font-mono text-xs text-[#8a8a8a] bg-[#f7f7f7] border border-[#e4e4e4] px-3 py-1.5 rounded-lg">
+            Owner: {contractOwner ? `${(contractOwner as string).slice(0, 10)}…${(contractOwner as string).slice(-6)}` : "—"}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Success
+  if (isSuccess) return (
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="max-w-lg mx-auto px-5 pt-36 pb-16">
+        <div className="card p-10 flex flex-col items-center text-center gap-5 animate-fade-in">
+          <div className="w-14 h-14 rounded-2xl bg-green-50 border border-green-200 flex items-center justify-center text-green-600">
+            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-[#0a0a0a] font-bold text-xl mb-1">Frame listed!</h3>
+            <p className="text-[#8a8a8a] text-sm">Your photo is now available for purchase.</p>
+          </div>
+          {txHash && (
+            <a href={`https://testnet.arcscan.app/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="btn-secondary text-sm">
+              View on ArcScan ↗
+            </a>
+          )}
+          <div className="h-px w-full bg-[#e4e4e4]"/>
+          <button
+            onClick={() => setForm({ metadataUri: "", fileHash: "", price: "0.10", title: "", description: "" })}
+            className="btn-ghost text-sm text-[#1a1aff]"
+          >
+            + List another frame
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Form
   return (
     <div className="min-h-screen">
       <Navbar />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-16">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white">List a Frame</h1>
-          <p className="text-white/50 mt-1">
-            Add a photo to the gallery. Only the contract owner (photographer) can list frames.
+      <div className="max-w-2xl mx-auto px-5 sm:px-8 pt-24 pb-20">
+
+        <div className="py-10 border-b border-[#e4e4e4] mb-10">
+          <p className="section-label mb-2">Photographer Panel</p>
+          <h1 className="text-[clamp(2rem,5vw,3.5rem)] font-black text-[#0a0a0a] tracking-tight leading-none">
+            List a Frame
+          </h1>
+          <p className="text-[#8a8a8a] text-base mt-3">
+            Add a photo to the on-chain gallery. Buyers receive an NFT proof of purchase.
           </p>
         </div>
 
-        {!isConnected ? (
-          <div className="card p-8 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-arc-600/20 border border-arc-500/20 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-arc-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18-3a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6" />
-              </svg>
-            </div>
-            <h3 className="text-white font-semibold mb-2">Connect your wallet</h3>
-            <p className="text-white/40 text-sm">Only the photographer who deployed the contract can list frames.</p>
-          </div>
-        ) : !isOwner ? (
-          <div className="card p-8 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-              </svg>
-            </div>
-            <h3 className="text-white font-semibold mb-2">Not authorized</h3>
-            <p className="text-white/40 text-sm">
-              Only the contract owner can list photos. Connect with the photographer&apos;s wallet.
-            </p>
-          </div>
-        ) : isSuccess ? (
-          <div className="card p-8 text-center animate-fade-in">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-white mb-2">Frame listed!</h3>
-            <p className="text-white/50 text-sm mb-6">Your photo is now available for purchase.</p>
-            {txHash && (
-              <a
-                href={`https://testnet.arcscan.app/tx/${txHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-secondary text-sm inline-flex items-center gap-2"
-              >
-                View on ArcScan ↗
-              </a>
-            )}
-            <div className="mt-4">
-              <button
-                onClick={() => setForm({ metadataUri: "", fileHash: "", price: "0.10", title: "", description: "" })}
-                className="text-arc-400 text-sm hover:underline"
-              >
-                List another frame
-              </button>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="card p-6 space-y-6">
-            {/* Title */}
-            <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">Frame Title</label>
-              <input
-                type="text"
-                placeholder="e.g. Wedding Ceremony — Golden Hour"
-                value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                className="input-field"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-7">
 
-            {/* Description */}
-            <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">Description</label>
-              <textarea
-                placeholder="Brief description of this frame…"
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                rows={2}
-                className="input-field resize-none"
-              />
-            </div>
+          <Field label="Frame Title" hint="optional">
+            <input type="text" placeholder="e.g. Wedding Ceremony — Golden Hour" value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} className="input-field"/>
+          </Field>
 
-            {/* Metadata URI */}
-            <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">
-                Metadata URI
-                <span className="ml-2 text-white/30 text-xs font-normal">IPFS JSON with name, image, attributes</span>
-              </label>
-              <input
-                type="text"
-                placeholder="ipfs://Qm... or https://..."
-                value={form.metadataUri}
-                onChange={(e) => setForm((f) => ({ ...f, metadataUri: e.target.value }))}
-                required
-                className="input-field font-mono text-sm"
-              />
-            </div>
+          <Field label="Description" hint="optional">
+            <textarea placeholder="A brief description…" value={form.description} rows={2}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} className="input-field resize-none"/>
+          </Field>
 
-            {/* File Hash */}
-            <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">
-                File Hash (SHA-256)
-                <span className="ml-2 text-white/30 text-xs font-normal">cryptographic proof of the original file</span>
-              </label>
-              <div className="flex gap-2 mb-2">
-                <button
-                  type="button"
-                  onClick={() => setHashMode("generate")}
-                  className={`text-xs px-3 py-1.5 rounded-lg transition-all ${hashMode === "generate" ? "bg-arc-600 text-white" : "bg-white/5 text-white/50 hover:bg-white/10"}`}
-                >
-                  Auto-generate
+          <div className="h-px bg-[#e4e4e4]"/>
+
+          <Field label="Metadata URI" hint="IPFS JSON with name, image, attributes — required">
+            <input type="text" placeholder="ipfs://Qm... or https://..." value={form.metadataUri} required
+              onChange={(e) => setForm((f) => ({ ...f, metadataUri: e.target.value }))} className="input-field font-mono text-sm"/>
+          </Field>
+
+          <Field label="File Hash" hint="SHA-256 / keccak256 — required">
+            <div className="flex gap-1 p-1 rounded-lg border border-[#e4e4e4] bg-[#f7f7f7] w-fit mb-3">
+              {(["generate", "manual"] as const).map((m) => (
+                <button key={m} type="button" onClick={() => setHashMode(m)}
+                  className={`text-xs px-3 py-1.5 rounded-md font-medium transition-colors capitalize ${hashMode === m ? "bg-white border border-[#e4e4e4] text-[#0a0a0a] shadow-sm" : "text-[#8a8a8a] hover:text-[#0a0a0a]"}`}>
+                  {m === "generate" ? "Auto-generate" : "Manual"}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setHashMode("manual")}
-                  className={`text-xs px-3 py-1.5 rounded-lg transition-all ${hashMode === "manual" ? "bg-arc-600 text-white" : "bg-white/5 text-white/50 hover:bg-white/10"}`}
-                >
-                  Enter manually
+              ))}
+            </div>
+            {hashMode === "generate" ? (
+              <div className="flex gap-2">
+                <input type="text" value={generatedHash} readOnly placeholder="Click Generate…"
+                  className="input-field font-mono text-xs text-[#8a8a8a] flex-1"/>
+                <button type="button" onClick={generateHash} className="btn-secondary text-sm py-2.5 px-4 flex-shrink-0">
+                  ↺ Generate
                 </button>
               </div>
-
-              {hashMode === "generate" ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={generatedHash}
-                    readOnly
-                    placeholder="Click 'Generate' to create hash"
-                    className="input-field font-mono text-xs text-white/50 flex-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={generateHash}
-                    className="btn-secondary text-sm py-2 px-4 whitespace-nowrap"
-                  >
-                    Generate
-                  </button>
-                </div>
-              ) : (
-                <input
-                  type="text"
-                  placeholder="0x... (32-byte hex)"
-                  value={form.fileHash}
-                  onChange={(e) => setForm((f) => ({ ...f, fileHash: e.target.value }))}
-                  required
-                  className="input-field font-mono text-sm"
-                />
-              )}
-            </div>
-
-            {/* Price */}
-            <div>
-              <label className="block text-white/70 text-sm font-medium mb-2">
-                Price (USDC)
-              </label>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {PRICE_PRESETS.map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setForm((f) => ({ ...f, price: p.toFixed(2) }))}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      form.price === p.toFixed(2)
-                        ? "bg-arc-600 text-white"
-                        : "bg-white/5 text-white/60 hover:bg-white/10 border border-white/10"
-                    }`}
-                  >
-                    ${p.toFixed(2)}
-                  </button>
-                ))}
-              </div>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                max="100"
-                value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                className="input-field"
-              />
-            </div>
-
-            {/* Error */}
-            {writeError && (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-red-400 text-sm">
-                {writeError.message.slice(0, 200)}
-              </div>
+            ) : (
+              <input type="text" placeholder="0x… (32-byte hex)" value={form.fileHash} required
+                onChange={(e) => setForm((f) => ({ ...f, fileHash: e.target.value }))} className="input-field font-mono text-sm"/>
             )}
+          </Field>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={isPending || isConfirming}
-              className="btn-primary w-full flex items-center justify-center gap-2"
-            >
-              {isPending || isConfirming ? (
-                <>
-                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                  </svg>
-                  {isPending ? "Confirm in wallet…" : "Confirming…"}
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                  </svg>
-                  List Frame on ARC
-                </>
-              )}
-            </button>
-          </form>
-        )}
+          <div className="h-px bg-[#e4e4e4]"/>
+
+          <Field label="Licence Price (USDC)">
+            <div className="flex flex-wrap gap-2 mb-3">
+              {PRESETS.map((p) => (
+                <button key={p} type="button" onClick={() => setForm((f) => ({ ...f, price: p.toFixed(2) }))}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${form.price === p.toFixed(2) ? "bg-[#0a0a0a] border-[#0a0a0a] text-white" : "bg-white border-[#e4e4e4] text-[#4a4a4a] hover:border-[#0a0a0a]"}`}>
+                  ${p.toFixed(2)}
+                </button>
+              ))}
+            </div>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8a8a8a] text-sm">$</span>
+              <input type="number" step="0.01" min="0.01" max="100" value={form.price}
+                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} className="input-field pl-7 pr-16"/>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8a8a8a] text-xs font-medium">USDC</span>
+            </div>
+          </Field>
+
+          {writeError && (
+            <div className="flex gap-3 items-start bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+              <svg className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+              </svg>
+              <p className="text-red-600 text-sm">{writeError.message.slice(0, 200)}</p>
+            </div>
+          )}
+
+          <button type="submit" disabled={isPending || isConfirming} className="btn-primary w-full py-3.5 text-base font-bold">
+            {isPending || isConfirming
+              ? <><Spinner/> {isPending ? "Confirm in wallet…" : "Confirming…"}</>
+              : "List Frame on ARC Blockchain"
+            }
+          </button>
+
+          <p className="text-[#8a8a8a] text-xs text-center">
+            Calls <code className="bg-[#f0f0f0] px-1 py-0.5 rounded">listPhoto()</code> on the contract.
+            File hash and metadata URI stored permanently on-chain.
+          </p>
+        </form>
       </div>
     </div>
   );

@@ -17,225 +17,183 @@ interface AgentPanelProps {
 }
 
 let logId = 0;
+const ts = () => new Date().toLocaleTimeString("en-US", { hour12: false });
 
-function timestamp(): string {
-  return new Date().toLocaleTimeString("en-US", { hour12: false });
+const LOG_COLOR: Record<AgentLog["type"], string> = {
+  buyer:   "#1a1aff",
+  counter: "#16a34a",
+  info:    "#8a8a8a",
+  error:   "#dc2626",
+};
+
+const LOG_PREFIX: Record<AgentLog["type"], string> = {
+  buyer:   "BUYER",
+  counter: "STATS",
+  info:    "INFO ",
+  error:   "ERROR",
+};
+
+function Spinner() {
+  return (
+    <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+    </svg>
+  );
 }
 
 export function AgentPanel({ onPurchase }: AgentPanelProps) {
   const publicClient = usePublicClient();
-  const [logs, setLogs] = useState<AgentLog[]>([]);
+  const [logs, setLogs]       = useState<AgentLog[]>([]);
   const [isRunning, setIsRunning] = useState(false);
-  const [sessionStats, setSessionStats] = useState({
-    totalSales: 0n,
-    totalEarned: 0n,
-    sessionDuration: 0n,
-  });
+  const [stats, setStats]     = useState({ totalSales: 0n, totalEarned: 0n, sessionDuration: 0n });
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const logRef = useRef<HTMLDivElement>(null);
+  const logRef      = useRef<HTMLDivElement>(null);
 
   const addLog = useCallback((type: AgentLog["type"], message: string, txHash?: string) => {
-    setLogs((prev) => [
-      ...prev.slice(-99),
-      { id: logId++, timestamp: timestamp(), type, message, txHash },
-    ]);
+    setLogs((p) => [...p.slice(-99), { id: logId++, timestamp: ts(), type, message, txHash }]);
   }, []);
 
-  // Auto-scroll logs
   useEffect(() => {
-    if (logRef.current) {
-      logRef.current.scrollTop = logRef.current.scrollHeight;
-    }
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
   }, [logs]);
 
-  // Counter agent: polls session stats every 5s
   const pollStats = useCallback(async () => {
     if (!publicClient || CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000") return;
     try {
-      const result = await publicClient.readContract({
-        address: CONTRACT_ADDRESS,
-        abi: EVENT_PROOF_ABI,
-        functionName: "getSessionStats",
-      });
-      const [totalSales, totalEarned, sessionDuration] = result as [bigint, bigint, bigint];
-      setSessionStats({ totalSales, totalEarned, sessionDuration });
-    } catch {
-      // silent
-    }
+      const r = await publicClient.readContract({ address: CONTRACT_ADDRESS, abi: EVENT_PROOF_ABI, functionName: "getSessionStats" });
+      const [totalSales, totalEarned, sessionDuration] = r as [bigint, bigint, bigint];
+      setStats({ totalSales, totalEarned, sessionDuration });
+    } catch { /* silent */ }
   }, [publicClient]);
 
-  // Buyer agent: simulate purchasing a random frame
   const runBuyerAgent = useCallback(async () => {
     if (!publicClient || CONTRACT_ADDRESS === "0x0000000000000000000000000000000000000000") {
-      addLog("error", "Contract not deployed. Set NEXT_PUBLIC_CONTRACT_ADDRESS.");
-      return;
+      addLog("error", "Contract not deployed. Set NEXT_PUBLIC_CONTRACT_ADDRESS."); return;
     }
-
-    addLog("buyer", "🤖 Buyer agent: fetching available frames…");
-
+    addLog("buyer", "Fetching available frames…");
     try {
-      const result = await publicClient.readContract({
-        address: CONTRACT_ADDRESS,
-        abi: EVENT_PROOF_ABI,
-        functionName: "getActivePhotos",
-        args: [0n, 20n],
-      });
-
-      const [photos] = result as unknown as [readonly { id: bigint; price: bigint; active: boolean }[], bigint];
+      const r = await publicClient.readContract({ address: CONTRACT_ADDRESS, abi: EVENT_PROOF_ABI, functionName: "getActivePhotos", args: [0n, 20n] });
+      const [photos] = r as unknown as [readonly { id: bigint; price: bigint; active: boolean }[], bigint];
       const active = photos.filter((p) => p.active);
-
-      if (active.length === 0) {
-        addLog("buyer", "⚠ No active frames available. Skipping cycle.");
-        return;
-      }
-
-      const target = active[Math.floor(Math.random() * active.length)];
-      addLog(
-        "buyer",
-        `📸 Buyer agent selected Frame #${target.id} (price: $${formatUsdc(target.price)} USDC) — simulation cycle logged (real purchase requires wallet signature)`
-      );
-
-      // Counter agent reads stats after "purchase"
+      if (!active.length) { addLog("buyer", "No active frames — skipping."); return; }
+      const t = active[Math.floor(Math.random() * active.length)];
+      addLog("buyer", `Selected Frame #${t.id} @ $${formatUsdc(t.price)} USDC (simulation)`);
       await pollStats();
-      addLog(
-        "counter",
-        `📊 Counter agent: session total = ${sessionStats.totalSales} sales · $${formatUsdc(sessionStats.totalEarned)} USDC earned`
-      );
-    } catch (err) {
-      addLog("error", `Agent error: ${err instanceof Error ? err.message : String(err)}`);
+      addLog("counter", `Session: ${stats.totalSales} sales · $${formatUsdc(stats.totalEarned)} USDC earned`);
+    } catch (e) {
+      addLog("error", e instanceof Error ? e.message.slice(0, 120) : String(e));
     }
-  }, [publicClient, addLog, pollStats, sessionStats]);
+  }, [publicClient, addLog, pollStats, stats]);
 
   function startAgents() {
     if (isRunning) return;
-    setIsRunning(true);
-    setLogs([]);
-    addLog("info", "▶ Agent session started — buyer agent active, counter agent watching");
-    pollStats();
-    runBuyerAgent();
-    intervalRef.current = setInterval(() => {
-      runBuyerAgent();
-      pollStats();
-    }, 8000);
+    setIsRunning(true); setLogs([]);
+    addLog("info", "Session started — buyer + counter agents running");
+    pollStats(); runBuyerAgent();
+    intervalRef.current = setInterval(() => { runBuyerAgent(); pollStats(); }, 8000);
   }
 
   function stopAgents() {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setIsRunning(false);
-    addLog("info", "⏹ Agent session stopped");
+    addLog("info", "Session stopped");
   }
 
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
+  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
+  useEffect(() => { pollStats(); const id = setInterval(pollStats, 10000); return () => clearInterval(id); }, [pollStats]);
 
-  // Live poll stats even when agents are not running
-  useEffect(() => {
-    pollStats();
-    const id = setInterval(pollStats, 10000);
-    return () => clearInterval(id);
-  }, [pollStats]);
-
-  const logTypeStyles: Record<AgentLog["type"], string> = {
-    buyer:   "text-arc-300",
-    counter: "text-emerald-400",
-    info:    "text-white/50",
-    error:   "text-red-400",
-  };
-
-  function formatDuration(seconds: bigint): string {
-    const s = Number(seconds);
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
+  function fmtDuration(s: bigint) {
+    const n = Number(s);
+    const h = Math.floor(n / 3600), m = Math.floor((n % 3600) / 60), sec = n % 60;
     if (h > 0) return `${h}h ${m}m`;
     if (m > 0) return `${m}m ${sec}s`;
     return `${sec}s`;
   }
 
   return (
-    <div className="card p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div className="card overflow-hidden">
+      {/* Header */}
+      <div className="px-6 py-5 border-b border-[#e4e4e4] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-white font-bold text-lg flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-arc-600/30 border border-arc-500/30 flex items-center justify-center text-arc-400">
-              🤖
-            </span>
-            Agent Simulation
-          </h2>
-          <p className="text-white/40 text-sm mt-1">
-            Buyer agent browses gallery · Counter agent tracks session earnings
+          <h2 className="text-[#0a0a0a] font-bold text-base">Agent Simulation</h2>
+          <p className="text-[#8a8a8a] text-sm mt-0.5">
+            Buyer agent reads on-chain gallery · Counter agent tracks session stats
           </p>
         </div>
-
         <div className="flex items-center gap-3">
+          {isRunning && (
+            <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
+              <span className="w-2 h-2 rounded-full bg-green-500"/>
+              Running
+            </div>
+          )}
           {isRunning ? (
-            <>
-              <span className="flex items-center gap-1.5 text-emerald-400 text-sm">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                Agents running
-              </span>
-              <button onClick={stopAgents} className="btn-danger text-sm">
-                Stop
-              </button>
-            </>
+            <button onClick={stopAgents} className="btn-danger py-1.5 px-4 text-sm">
+              Stop
+            </button>
           ) : (
-            <button onClick={startAgents} className="btn-primary text-sm py-2">
+            <button onClick={startAgents} className="btn-primary py-1.5 px-4 text-sm">
               ▶ Run Agents
             </button>
           )}
         </div>
       </div>
 
-      {/* Session stats */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
-        <div className="bg-white/5 rounded-xl p-4 text-center border border-white/10">
-          <div className="text-2xl font-bold text-white">{Number(sessionStats.totalSales)}</div>
-          <div className="text-white/40 text-xs mt-1">Total Sales</div>
-        </div>
-        <div className="bg-white/5 rounded-xl p-4 text-center border border-white/10">
-          <div className="text-2xl font-bold text-arc-300">
-            ${formatUsdc(sessionStats.totalEarned)}
+      {/* Stats row */}
+      <div className="grid grid-cols-3 divide-x divide-[#e4e4e4] border-b border-[#e4e4e4]">
+        {[
+          { label: "Total Sales",   value: Number(stats.totalSales).toString() },
+          { label: "USDC Earned",   value: `$${formatUsdc(stats.totalEarned)}` },
+          { label: "Session Age",   value: stats.sessionDuration > 0n ? fmtDuration(stats.sessionDuration) : "—" },
+        ].map((s) => (
+          <div key={s.label} className="px-6 py-4 text-center">
+            <div className="text-2xl font-bold text-[#0a0a0a] tabular-nums">{s.value}</div>
+            <div className="text-xs text-[#8a8a8a] mt-1 uppercase tracking-wide font-medium">{s.label}</div>
           </div>
-          <div className="text-white/40 text-xs mt-1">USDC Earned</div>
-        </div>
-        <div className="bg-white/5 rounded-xl p-4 text-center border border-white/10">
-          <div className="text-2xl font-bold text-white/70">
-            {sessionStats.sessionDuration > 0n ? formatDuration(sessionStats.sessionDuration) : "—"}
-          </div>
-          <div className="text-white/40 text-xs mt-1">Session Age</div>
-        </div>
+        ))}
       </div>
 
-      {/* Log terminal */}
-      <div
-        ref={logRef}
-        className="bg-black/40 rounded-xl border border-white/10 p-4 h-52 overflow-y-auto font-mono text-xs space-y-1"
-      >
-        {logs.length === 0 ? (
-          <div className="text-white/20 text-center mt-16">
-            Press &ldquo;Run Agents&rdquo; to start simulation
-          </div>
-        ) : (
-          logs.map((log) => (
-            <div key={log.id} className="flex gap-2 leading-relaxed">
-              <span className="text-white/20 flex-shrink-0 tabular-nums">{log.timestamp}</span>
-              <span className={logTypeStyles[log.type]}>{log.message}</span>
-              {log.txHash && (
-                <a
-                  href={`https://testnet.arcscan.app/tx/${log.txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-arc-400 hover:underline flex-shrink-0"
-                >
-                  ↗ tx
-                </a>
-              )}
+      {/* Terminal */}
+      <div className="p-5">
+        <div className="rounded-xl overflow-hidden border border-[#e4e4e4]">
+          {/* Title bar */}
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-[#f7f7f7] border-b border-[#e4e4e4]">
+            <div className="flex gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e4e4e4]"/>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e4e4e4]"/>
+              <span className="w-2.5 h-2.5 rounded-full bg-[#e4e4e4]"/>
             </div>
-          ))
-        )}
+            <span className="text-[#8a8a8a] text-xs font-mono ml-1">agent.log</span>
+          </div>
+          {/* Log body */}
+          <div
+            ref={logRef}
+            className="h-48 overflow-y-auto p-4 bg-white font-mono text-[11.5px] leading-relaxed space-y-0.5"
+          >
+            {logs.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-[#c4c4c4] text-xs">
+                Press &ldquo;Run Agents&rdquo; to start_
+              </div>
+            ) : (
+              logs.map((log) => (
+                <div key={log.id} className="flex gap-3">
+                  <span className="text-[#c4c4c4] tabular-nums flex-shrink-0 w-16">{log.timestamp}</span>
+                  <span className="flex-shrink-0 w-12 font-semibold" style={{ color: LOG_COLOR[log.type] }}>
+                    {LOG_PREFIX[log.type]}
+                  </span>
+                  <span style={{ color: LOG_COLOR[log.type] === "#8a8a8a" ? "#6a6a6a" : LOG_COLOR[log.type] }}>
+                    {log.message}
+                  </span>
+                  {log.txHash && (
+                    <a href={`https://testnet.arcscan.app/tx/${log.txHash}`} target="_blank" rel="noopener noreferrer"
+                      className="text-[#1a1aff] hover:underline flex-shrink-0">↗</a>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

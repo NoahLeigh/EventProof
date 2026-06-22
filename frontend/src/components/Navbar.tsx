@@ -1,114 +1,224 @@
 "use client";
 
 import Link from "next/link";
-import { useAccount, useConnect, useDisconnect, useChainId, useSwitchChain } from "wagmi";
+import { usePathname } from "next/navigation";
+import {
+  useAccount, useConnect, useDisconnect,
+  useChainId, useSwitchChain, useBalance
+} from "wagmi";
 import { injected } from "wagmi/connectors";
-import { shortenAddress } from "@/lib/contract";
-import { ARC_TESTNET_CHAIN_ID } from "@/lib/contract";
-import { useState } from "react";
+import { shortenAddress, ARC_TESTNET_CHAIN_ID } from "@/lib/contract";
+import { useState, useEffect } from "react";
+
+function IconMenu() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-5 h-5">
+      <line x1="3" y1="6"  x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  );
+}
+
+function IconX() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="w-5 h-5">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6"  y1="6" x2="18" y2="18"/>
+    </svg>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+    </svg>
+  );
+}
 
 export function Navbar() {
+  const pathname  = usePathname();
   const { address, isConnected } = useAccount();
   const { connect, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { switchChain, isPending: isSwitching } = useSwitchChain();
+  const [open, setOpen] = useState(false);
+
+  // Balance
+  const { data: balanceData } = useBalance({
+    address: address,
+    query: { enabled: isConnected && !!address },
+  });
 
   const isWrongNetwork = isConnected && chainId !== ARC_TESTNET_CHAIN_ID;
 
-  function handleConnect() {
-    connect({ connector: injected() });
+  // Auto-switch to ARC Testnet on connect
+  useEffect(() => {
+    if (isConnected && isWrongNetwork && !isSwitching) {
+      switchChain({ chainId: ARC_TESTNET_CHAIN_ID });
+    }
+  }, [isConnected, isWrongNetwork, isSwitching, switchChain]);
+
+  const links = [
+    { href: "/",          label: "Gallery"    },
+    { href: "/dashboard", label: "Dashboard"  },
+    { href: "/list",      label: "List Frame" },
+  ];
+
+  // Format balance
+  function formatBalance(val: bigint, decimals: number): string {
+    const divisor = 10 ** decimals;
+    const num = Number(val) / divisor;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    if (num >= 1) return num.toFixed(2);
+    return num.toFixed(4);
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/10 bg-arc-950/80 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#e4e4e4]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between h-14">
+
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-arc-400 to-arc-700 flex items-center justify-center shadow-lg shadow-arc-600/30">
-              <svg viewBox="0 0 24 24" fill="none" className="w-4.5 h-4.5 text-white" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-              </svg>
-            </div>
-            <span className="text-white font-bold text-lg tracking-tight group-hover:text-arc-300 transition-colors">
-              EventProof
-            </span>
+          <Link href="/" className="font-black text-[#0a0a0a] text-lg tracking-tight leading-none select-none">
+            EventProof
           </Link>
 
-          {/* Nav links */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link href="/" className="text-white/70 hover:text-white text-sm font-medium transition-colors">
-              Gallery
-            </Link>
-            <Link href="/dashboard" className="text-white/70 hover:text-white text-sm font-medium transition-colors">
-              Dashboard
-            </Link>
-            <Link href="/list" className="text-white/70 hover:text-white text-sm font-medium transition-colors">
-              List Photo
-            </Link>
+          {/* Desktop links */}
+          <nav className="hidden md:flex items-center gap-0.5">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  pathname === l.href
+                    ? "bg-[#f0f0f0] text-[#0a0a0a]"
+                    : "text-[#6a6a6a] hover:bg-[#f7f7f7] hover:text-[#0a0a0a]"
+                }`}
+              >
+                {l.label}
+              </Link>
+            ))}
             <a
               href="https://testnet.arcscan.app"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/50 hover:text-white/80 text-sm font-medium transition-colors flex items-center gap-1"
+              className="px-3 py-1.5 rounded-md text-sm font-medium text-[#8a8a8a] hover:bg-[#f7f7f7] hover:text-[#0a0a0a] transition-colors flex items-center gap-1"
             >
               Explorer
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-2.5 h-2.5">
+                <path d="M1 11 10 2M10 2H4M10 2v6" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </a>
-          </div>
+          </nav>
 
-          {/* Wallet */}
-          <div className="flex items-center gap-3">
-            {isWrongNetwork && (
+          {/* Right: wallet + burger */}
+          <div className="flex items-center gap-2">
+            {/* Switching network indicator */}
+            {isSwitching && (
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#e4e4e4] bg-[#f7f7f7] text-[#8a8a8a] text-xs font-medium">
+                <Spinner />
+                Switching to ARC…
+              </div>
+            )}
+
+            {/* Wrong network (manual switch fallback) */}
+            {isWrongNetwork && !isSwitching && (
               <button
                 onClick={() => switchChain({ chainId: ARC_TESTNET_CHAIN_ID })}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-semibold hover:bg-amber-500/30 transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-amber-300 bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100 transition-colors"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"/>
                 Switch to ARC
               </button>
             )}
 
             {isConnected && address ? (
               <div className="flex items-center gap-2">
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  <span className="text-white/80 text-sm font-mono">{shortenAddress(address)}</span>
+                {/* Balance + address badge */}
+                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#f7f7f7] border border-[#e4e4e4] text-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"/>
+                  {balanceData && (
+                    <span className="text-[#1a1aff] font-semibold tabular-nums">
+                      {formatBalance(balanceData.value, balanceData.decimals)} {balanceData.symbol}
+                    </span>
+                  )}
+                  <span className="text-[#c4c4c4]">|</span>
+                  <span className="text-[#4a4a4a] font-mono tracking-tight">
+                    {shortenAddress(address)}
+                  </span>
                 </div>
                 <button
                   onClick={() => disconnect()}
-                  className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white text-sm transition-all"
+                  className="btn-ghost text-xs text-[#8a8a8a]"
                 >
                   Disconnect
                 </button>
               </div>
             ) : (
               <button
-                onClick={handleConnect}
+                onClick={() => connect({ connector: injected() })}
                 disabled={isPending}
-                className="btn-primary py-2 px-4 text-sm"
+                className="btn-primary text-sm py-1.5 px-4"
               >
-                {isPending ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                    </svg>
-                    Connecting...
-                  </span>
-                ) : (
-                  "Connect Wallet"
-                )}
+                {isPending ? <><Spinner /> Connecting…</> : "Connect Wallet"}
               </button>
             )}
+
+            {/* Mobile burger */}
+            <button
+              className="md:hidden btn-ghost p-1.5"
+              onClick={() => setOpen((v) => !v)}
+              aria-label="Menu"
+            >
+              {open ? <IconX /> : <IconMenu />}
+            </button>
           </div>
         </div>
-      </div>
-    </nav>
+      </header>
+
+      {/* Mobile menu */}
+      {open && (
+        <div className="md:hidden fixed inset-0 z-40 bg-white pt-14">
+          <nav className="p-5 flex flex-col gap-1 border-t border-[#e4e4e4]">
+            {links.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className={`px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                  pathname === l.href
+                    ? "bg-[#f0f0f0] text-[#0a0a0a]"
+                    : "text-[#4a4a4a] hover:bg-[#f7f7f7]"
+                }`}
+              >
+                {l.label}
+              </Link>
+            ))}
+            <a
+              href="https://testnet.arcscan.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-3 rounded-xl text-base font-medium text-[#8a8a8a]"
+              onClick={() => setOpen(false)}
+            >
+              Explorer ↗
+            </a>
+            {/* Balance on mobile */}
+            {isConnected && balanceData && (
+              <div className="mt-3 px-4 py-3 rounded-xl bg-[#f7f7f7] border border-[#e4e4e4]">
+                <p className="text-xs text-[#8a8a8a] mb-1">Balance</p>
+                <p className="text-[#1a1aff] font-bold">
+                  {formatBalance(balanceData.value, balanceData.decimals)} {balanceData.symbol}
+                </p>
+              </div>
+            )}
+          </nav>
+        </div>
+      )}
+    </>
   );
 }
