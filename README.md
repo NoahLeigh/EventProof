@@ -2,6 +2,8 @@
 
 *Photography for the night, sold one frame at a time.*
 
+<picture><img src=".github/banner.svg" width="100%" alt="EventProof, Volume One — a dark botanical nocturne of lily-pads and white flowers with a gold flourish"></picture>
+
 You hire a photographer for the wedding, the launch, the recital. Three hundred frames come back. The trouble has never been the shooting — it's the selling. Nobody wants the contact sheet. They want the one frame where the bride is mid-laugh, or the one where their kid finally looks at the camera. EventProof is built to sell that single frame, for the price of a coffee, and to hand the buyer something they can prove is theirs.
 
 This is the run-of-show — read it like the printed programme handed to you at the door.
