@@ -18,7 +18,7 @@ This is the run-of-show — read it like the printed programme handed to you at 
 | **The house** | `EventProof` (token symbol `EVPF`), an ERC-721 contract |
 | **Box office** | `0x909b82B77050b340F77060C576f4742e2Ee45AB0` |
 | **At the door** | [testnet.arcscan.app/address/0x909b82B77050b340F77060C576f4742e2Ee45AB0](https://testnet.arcscan.app/address/0x909b82B77050b340F77060C576f4742e2Ee45AB0) |
-| **Doors** | [eventproof-nft.vercel.app](https://eventproof-nft.vercel.app/) *(currently gated behind access protection — the programme below describes the show regardless)* |
+| **Doors** | [eventproof-arc.vercel.app](https://eventproof-arc.vercel.app/) |
 
 Settlement is in native USDC, six decimals. A list price of `100000` is ten cents. Nothing in this hall is denominated in a side-token you have to acquire first.
 
